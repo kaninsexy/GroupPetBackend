@@ -42,7 +42,7 @@ const omiseCheckoutInternetBanking = async (req, res, next) => {
       amount,
       source: token,
       currency: 'thb',
-      return_uri: 'http://localhost:4000/message',
+      return_uri: 'http://localhost:3000/checkout',
     });
 
     res.send({ authorizeUri: charge.authorize_uri });
