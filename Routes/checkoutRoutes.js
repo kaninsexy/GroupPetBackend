@@ -11,7 +11,7 @@ const checkoutRoutes = express.Router();
 
 checkoutRoutes.post('/checkout-credit-card', omiseCheckoutCreditCard);
 checkoutRoutes.post('/checkout-internetBanking', omiseCheckoutInternetBanking);
-// checkoutRoutes.post('/webhooks', omiseWebHooks)
-// checkoutRoutes.get('/bank-charge', getInternetBankingCharge)
+checkoutRoutes.post('/webhooks', omiseWebHooks);
+checkoutRoutes.get('/bank-charge', getInternetBankingCharge);
 
 module.exports = checkoutRoutes;

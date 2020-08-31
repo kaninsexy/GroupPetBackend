@@ -1,7 +1,16 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const fs = require('fs');
+const path = require('path');
+const util = require('util');
 const cors = require('cors');
 require('dotenv').config();
+
+const readFile = util.promisify(fs.readFile);
+const writeFile = util.promisify(fs.writeFile);
+const rootDir = require('../helper/path');
+
+const filePath = path.join(rootDir, 'data', 'internetBankingCharge.json');
 
 const omise = require('omise')({
   publicKey: process.env.OMISE_PUBLIC_KEY,
@@ -27,7 +36,7 @@ const omiseCheckoutCreditCard = async (req, res, next) => {
       status: charge.status,
       amount: charge.amount / 100,
     });
-    console.log(charge);
+    // console.log(charge);
   } catch (error) {
     console.log(error);
   }
@@ -42,19 +51,62 @@ const omiseCheckoutInternetBanking = async (req, res, next) => {
       amount,
       source: token,
       currency: 'thb',
-      return_uri: 'http://localhost:3000/checkout',
+      return_uri: 'http://localhost:3000/message',
     });
 
     res.send({ authorizeUri: charge.authorize_uri });
+    // console.log(charge);
+  } catch (err) {
+    console.log(err);
+  }
+  next();
+};
+const omiseWebHooks = async (req, res, next) => {
+  try {
+    const { data } = req.body;
+
+    if (data.status === 'successful' || data.status === 'failed') {
+      const charge = {
+        id: data.id,
+        status: data.status,
+        amount: data.funding_amount,
+      };
+
+      await writeFile(filePath, JSON.stringify(charge));
+    }
   } catch (err) {
     console.log(err);
   }
   next();
 };
 
+const readFileData = async () => {
+  try {
+    const chargeData = await readFile(filePath, 'utf8');
+
+    if (!chargeData) {
+      return {};
+    }
+
+    return JSON.parse(chargeData);
+  } catch (err) {
+    console.log(err);
+  }
+};
+const getInternetBankingCharge = async (req, res, next) => {
+  try {
+    const charge = await readFileData();
+
+    res.send({ ...charge });
+    await writeFile(filePath, JSON.stringify({}));
+  } catch (err) {
+    console.log(err);
+  }
+  next();
+};
 module.exports = {
   omiseCheckoutCreditCard,
   omiseCheckoutInternetBanking,
-  // omiseWebHooks,
-  // getInternetBankingCharge
+  omiseWebHooks,
+  getInternetBankingCharge,
 };
