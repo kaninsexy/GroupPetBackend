@@ -18,7 +18,7 @@ const omise = require('omise')({
 });
 
 const omiseCheckoutCreditCard = async (req, res, next) => {
-  // console.log(req.body.card);
+  console.log(req.body);
   const { email, name, amount, token } = req.body;
   try {
     const customer = await omise.customers.create({
@@ -31,12 +31,12 @@ const omiseCheckoutCreditCard = async (req, res, next) => {
       currency: 'thb',
       customer: customer.id,
     });
+    // console.log(charge);
     res.send({
       authorizeUri: charge.authorize_uri,
       status: charge.status,
       amount: charge.amount / 100,
     });
-    // console.log(charge);
   } catch (error) {
     console.log(error);
   }
@@ -65,6 +65,7 @@ const omiseWebHooks = async (req, res, next) => {
   try {
     const { data } = req.body;
 
+    // console.log(data);
     if (data.status === 'successful' || data.status === 'failed') {
       const charge = {
         id: data.id,
