@@ -61,6 +61,38 @@ const omiseCheckoutInternetBanking = async (req, res, next) => {
   }
   next();
 };
+
+const omiseTransfer = async (req, res, next) => {
+  console.log(req.body);
+  const { email, name, amount, token } = req.body;
+  try {
+    const recipient = await omise.recipients.create({
+      email,
+      name,
+      type: 'individual',
+      bank_account: {
+        brand: 'bbl',
+        number: '1234567890',
+        name,
+      },
+    });
+    const transfer = await omise.transfers.create({
+      amount,
+      recipient: recipient,
+    });
+    console.log(transfer);
+
+    res.send({
+      authorizeUri: charge.authorize_uri,
+      status: charge.status,
+      amount: charge.amount / 100,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+  next();
+};
+
 const omiseWebHooks = async (req, res, next) => {
   try {
     const { data } = req.body;
@@ -110,4 +142,5 @@ module.exports = {
   omiseCheckoutInternetBanking,
   omiseWebHooks,
   getInternetBankingCharge,
+  omiseTransfer,
 };
